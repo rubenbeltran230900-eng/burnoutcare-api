@@ -1,0 +1,37 @@
+{
+  "name": "burnoutcare-api",
+  "version": "1.0.0",
+  "description": "API REST para el sistema BurnoutCare - Detección y acompañamiento del síndrome de burnout",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest"
+  },
+  "keywords": [
+    "burnout",
+    "mbi",
+    "salud-ocupacional",
+    "nom-035",
+    "api"
+  ],
+  "author": "Ruben",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "i18next": "^25.8.18",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "pg": "^8.11.3",
+    "react-i18next": "^16.5.8"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2"
+  }
+}
