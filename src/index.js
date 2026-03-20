@@ -5,6 +5,7 @@ const morgan = require('morgan');
 require('dotenv').config();
 
 const { testConnection } = require('./config/database');
+const initDb = require('./config/initDb');
 
 // Importar rutas
 const authRoutes = require('./routes/auth.routes');
@@ -132,6 +133,8 @@ const startServer = async () => {
   
   if (!dbConnected) {
     console.warn('⚠️  Iniciando sin conexión a base de datos');
+  } else {
+    await initDb();
   }
 
   app.listen(PORT, () => {
