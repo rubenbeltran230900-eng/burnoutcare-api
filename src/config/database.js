@@ -5,6 +5,8 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
+const query = (text, params) => pool.query(text, params);
+
 const testConnection = async () => {
   try {
     const client = await pool.connect();
@@ -21,4 +23,4 @@ pool.on('error', (err) => {
   console.error('Error en el pool de PostgreSQL:', err);
 });
 
-module.exports = { pool, testConnection };
+module.exports = { pool, query, testConnection };
