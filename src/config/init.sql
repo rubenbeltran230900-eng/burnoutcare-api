@@ -1,16 +1,11 @@
--- Tabla empresas
+-- Crear tablas si no existen
 CREATE TABLE IF NOT EXISTS empresas (
   id SERIAL PRIMARY KEY,
   nombre VARCHAR(255) NOT NULL,
-  sector VARCHAR(100),
-  tamanio VARCHAR(50),
-  contacto_nombre VARCHAR(255),
-  contacto_email VARCHAR(255),
   activo BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla usuarios
 CREATE TABLE IF NOT EXISTS usuarios (
   id SERIAL PRIMARY KEY,
   nombre VARCHAR(255) NOT NULL,
@@ -24,7 +19,6 @@ CREATE TABLE IF NOT EXISTS usuarios (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla evaluaciones
 CREATE TABLE IF NOT EXISTS evaluaciones (
   id SERIAL PRIMARY KEY,
   usuario_id INTEGER REFERENCES usuarios(id),
@@ -41,7 +35,6 @@ CREATE TABLE IF NOT EXISTS evaluaciones (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla recomendaciones
 CREATE TABLE IF NOT EXISTS recomendaciones (
   id SERIAL PRIMARY KEY,
   evaluacion_id INTEGER REFERENCES evaluaciones(id),
@@ -52,7 +45,6 @@ CREATE TABLE IF NOT EXISTS recomendaciones (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla auditoria
 CREATE TABLE IF NOT EXISTS auditoria (
   id SERIAL PRIMARY KEY,
   usuario_id INTEGER REFERENCES usuarios(id),
@@ -61,6 +53,12 @@ CREATE TABLE IF NOT EXISTS auditoria (
   ip VARCHAR(50),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Agregar columnas faltantes a empresas si no existen
+ALTER TABLE empresas ADD COLUMN IF NOT EXISTS sector VARCHAR(100);
+ALTER TABLE empresas ADD COLUMN IF NOT EXISTS tamanio VARCHAR(50);
+ALTER TABLE empresas ADD COLUMN IF NOT EXISTS contacto_nombre VARCHAR(255);
+ALTER TABLE empresas ADD COLUMN IF NOT EXISTS contacto_email VARCHAR(255);
 
 -- Empresa demo
 INSERT INTO empresas (nombre, sector, tamanio, contacto_nombre, contacto_email)
