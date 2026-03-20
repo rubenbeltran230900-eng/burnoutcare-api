@@ -5,12 +5,20 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-pool.on('connect', () => {
-  console.log('Conectado a PostgreSQL');
-});
+const testConnection = async () => {
+  try {
+    const client = await pool.connect();
+    console.log('Conectado a PostgreSQL correctamente');
+    client.release();
+    return true;
+  } catch (err) {
+    console.error('Error al conectar a PostgreSQL:', err.message);
+    return false;
+  }
+};
 
 pool.on('error', (err) => {
   console.error('Error en el pool de PostgreSQL:', err);
 });
 
-module.exports = pool;
+module.exports = { pool, testConnection };
