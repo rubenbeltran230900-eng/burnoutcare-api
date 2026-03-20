@@ -14,12 +14,3 @@ pool.on('error', (err) => {
 });
 
 module.exports = pool;
-```
-
----
-
-**Paso 3 — Agrega `NODE_ENV` en Railway**
-
-En Railway → tu servicio de **backend** → pestaña **Variables** → agregar:
-```
-NODE_ENV = production
