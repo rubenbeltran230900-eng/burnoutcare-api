@@ -6,7 +6,7 @@ const { verificarToken, verificarRol } = require('../middlewares/auth.middleware
 router.get('/', verificarToken, verificarRol('administrador'), async (req, res) => {
   try {
     const result = await query(
-      `SELECT a.id, a.accion, a.detalle, a.ip, a.created_at,
+      `SELECT a.id, a.empresa_id, a.accion, a.modulo, a.detalles, a.created_at,
               u.nombre as usuario_nombre, u.email as usuario_email, u.rol
        FROM auditoria a
        LEFT JOIN usuarios u ON a.usuario_id = u.id

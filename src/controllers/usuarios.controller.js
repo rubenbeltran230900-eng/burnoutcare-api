@@ -73,9 +73,9 @@ const crearUsuario = async (req, res) => {
 
     try {
       await query(
-        `INSERT INTO auditoria (usuario_id, accion, detalle, ip) VALUES ($1, $2, $3, $4)`,
-        [req.usuario.id, 'CREATE_USUARIO', JSON.stringify({ nombre, email }), req.ip]
-      );
+  `INSERT INTO auditoria (empresa_id, usuario_id, accion, modulo, detalles) VALUES ($1, $2, $3, $4, $5)`,
+  [empresa_id, req.usuario.id, 'CREATE', 'usuarios', JSON.stringify({ nombre, email })]
+);
     } catch (e) { console.warn('Auditoría no registrada:', e.message); }
 
     res.status(201).json({ success: true, message: 'Usuario creado exitosamente', data: result.rows[0] });
@@ -134,9 +134,9 @@ const actualizarUsuario = async (req, res) => {
 
     try {
       await query(
-        `INSERT INTO auditoria (usuario_id, accion, detalle, ip) VALUES ($1, $2, $3, $4)`,
-        [req.usuario.id, 'UPDATE_USUARIO', JSON.stringify({ id }), req.ip]
-      );
+  `INSERT INTO auditoria (empresa_id, usuario_id, accion, modulo, detalles) VALUES ($1, $2, $3, $4, $5)`,
+  [req.usuario.empresa_id, req.usuario.id, 'UPDATE', 'usuarios', JSON.stringify({ id })]
+);
     } catch (e) { console.warn('Auditoría no registrada:', e.message); }
 
     res.json({ success: true, message: 'Usuario actualizado exitosamente', data: result.rows[0] });
@@ -160,10 +160,10 @@ const eliminarUsuario = async (req, res) => {
     }
 
     try {
-      await query(
-        `INSERT INTO auditoria (usuario_id, accion, detalle, ip) VALUES ($1, $2, $3, $4)`,
-        [req.usuario.id, 'DELETE_USUARIO', JSON.stringify({ nombre: existe.rows[0].nombre }), req.ip]
-      );
+     await query(
+  `INSERT INTO auditoria (empresa_id, usuario_id, accion, modulo, detalles) VALUES ($1, $2, $3, $4, $5)`,
+  [req.usuario.empresa_id, req.usuario.id, 'DELETE', 'usuarios', JSON.stringify({ nombre: existe.rows[0].nombre })]
+);
     } catch (e) { console.warn('Auditoría no registrada:', e.message); }
 
     await query('DELETE FROM usuarios WHERE id = $1', [id]);
