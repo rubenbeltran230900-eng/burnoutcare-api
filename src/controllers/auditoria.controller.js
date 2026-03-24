@@ -1,9 +1,6 @@
-const express = require('express');
-const router = express.Router();
 const { query } = require('../config/database');
-const { verificarToken, verificarRol } = require('../middlewares/auth.middleware');
 
-router.get('/', verificarToken, verificarRol('administrador'), async (req, res) => {
+const obtenerAuditoria = async (req, res) => {
   try {
     const result = await query(
       `SELECT a.id, a.accion, a.detalle, a.ip, a.created_at,
@@ -11,13 +8,14 @@ router.get('/', verificarToken, verificarRol('administrador'), async (req, res) 
        FROM auditoria a
        LEFT JOIN usuarios u ON a.usuario_id = u.id
        ORDER BY a.created_at DESC
-       LIMIT 500`
+       LIMIT 500`,
+      []
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error('Error al obtener auditoría:', error);
-    res.status(500).json({ success: false, error: 'Error al obtener registros de auditoría' });
+    res.status(500).json({ success: false, error: 'Error al obtener auditoría' });
   }
-});
+};
 
-module.exports = router;
+module.exports = { obtenerAuditoria };
