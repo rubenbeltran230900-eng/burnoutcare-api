@@ -1,22 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const { 
-  obtenerEmpresas, 
-  obtenerEmpresa, 
-  crearEmpresa, 
-  actualizarEmpresa, 
-  eliminarEmpresa 
-} = require('../controllers/empresas.controller');
 const { verificarToken, verificarRol } = require('../middlewares/auth.middleware');
+const {
+  obtenerEmpresas, obtenerEmpresa, crearEmpresa,
+  actualizarEmpresa, toggleActivoEmpresa, eliminarEmpresa,
+  obtenerUsuariosEmpresa
+} = require('../controllers/empresas.controller');
 
-// Todas las rutas requieren autenticación
 router.use(verificarToken);
+router.use(verificarRol('administrador'));
 
-// Rutas de empresas (solo administradores)
-router.get('/', verificarRol('administrador'), obtenerEmpresas);
-router.get('/:id', verificarRol('administrador'), obtenerEmpresa);
-router.post('/', verificarRol('administrador'), crearEmpresa);
-router.put('/:id', verificarRol('administrador'), actualizarEmpresa);
-router.delete('/:id', verificarRol('administrador'), eliminarEmpresa);
+router.get('/', obtenerEmpresas);
+router.get('/:id', obtenerEmpresa);
+router.post('/', crearEmpresa);
+router.put('/:id', actualizarEmpresa);
+router.patch('/:id/toggle', toggleActivoEmpresa);
+router.delete('/:id', eliminarEmpresa);
+router.get('/:id/usuarios', obtenerUsuariosEmpresa);
 
 module.exports = router;
