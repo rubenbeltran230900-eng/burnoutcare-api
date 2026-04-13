@@ -11,11 +11,11 @@ router.use(verificarToken);
 router.use(verificarRol('administrador'));
 
 router.get('/', obtenerEmpresas);
-router.get('/:id', obtenerEmpresa);
 router.post('/', crearEmpresa);
+router.get('/:id/usuarios', obtenerUsuariosEmpresa);
+router.get('/:id', obtenerEmpresa);
 router.put('/:id', actualizarEmpresa);
 router.patch('/:id/toggle', toggleActivoEmpresa);
 router.delete('/:id', eliminarEmpresa);
-router.get('/:id/usuarios', obtenerUsuariosEmpresa);
 
 module.exports = router;
