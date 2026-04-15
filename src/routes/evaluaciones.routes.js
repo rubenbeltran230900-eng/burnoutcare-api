@@ -16,7 +16,7 @@ router.use(verificarToken);
 router.get('/estadisticas', verificarRol('administrador', 'coordinador'), obtenerEstadisticas);
 
 // Rutas de evaluaciones
-router.get('/', verificarRol('administrador', 'profesional', 'coordinador'), obtenerEvaluaciones);
+router.get('/', verificarRol('administrador', 'profesional', 'coordinador', 'evaluado'), obtenerEvaluaciones);
 router.get('/:id', verificarRol('administrador', 'profesional', 'coordinador'), obtenerEvaluacion);
 router.post('/', verificarRol('administrador', 'profesional', 'evaluado'), crearEvaluacion);
 router.delete('/:id', verificarRol('administrador'), eliminarEvaluacion);
