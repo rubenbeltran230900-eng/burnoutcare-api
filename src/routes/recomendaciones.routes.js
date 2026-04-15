@@ -11,8 +11,8 @@ const { verificarToken, verificarRol } = require('../middlewares/auth.middleware
 router.use(verificarToken);
 
 // Rutas de recomendaciones
-router.get('/', verificarRol('administrador', 'profesional'), obtenerTodasRecomendaciones);
-router.get('/:evaluacion_id', verificarRol('administrador', 'profesional'), obtenerRecomendaciones);
-router.post('/generar', verificarRol('administrador', 'profesional'), generarRecomendacion);
+router.get('/', verificarRol('administrador', 'profesional', 'evaluado'), obtenerTodasRecomendaciones);
+router.get('/:evaluacion_id', verificarRol('administrador', 'profesional', 'evaluado'), obtenerRecomendaciones);
+router.post('/generar', verificarRol('administrador', 'profesional', 'evaluado'), generarRecomendacion);
 
 module.exports = router;
