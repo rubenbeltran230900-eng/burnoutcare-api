@@ -131,4 +131,68 @@ const perfil = async (req, res) => {
   }
 };
 
-module.exports = { registro, login, perfil };
+// Auto-registro de evaluado con código de empresa
+const registroEvaluado = async (req, res) => {
+  try {
+    const { nombre, email, password, codigo_registro, area, puesto } = req.body;
+
+    if (!nombre || !email || !password || !codigo_registro) {
+      return res.status(400).json({
+        success: false,
+        error: 'Campos requeridos: nombre, email, password, codigo_registro'
+      });
+    }
+
+    // Buscar empresa por código
+    const empresaResult = await query(
+      'SELECT id, nombre FROM empresas WHERE codigo_registro = $1',
+      [codigo_registro]
+    );
+
+    if (empresaResult.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Código de empresa inválido'
+      });
+    }
+
+    const empresa = empresaResult.rows[0];
+
+    // Verificar que el email no exista
+    const existeUsuario = await query('SELECT id FROM usuarios WHERE email = $1', [email]);
+    if (existeUsuario.rows.length > 0) {
+      return res.status(400).json({ success: false, error: 'El email ya está registrado' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(password, salt);
+
+    const result = await query(
+      `INSERT INTO usuarios (nombre, email, password, empresa_id, rol, area, puesto) 
+       VALUES ($1, $2, $3, $4, 'evaluado', $5, $6) 
+       RETURNING id, nombre, email, empresa_id, rol, area, puesto, created_at`,
+      [nombre, email, password_hash, empresa.id, area || null, puesto || null]
+    );
+
+    const usuario = result.rows[0];
+    usuario.empresa_nombre = empresa.nombre;
+
+    const token = jwt.sign(
+      { id: usuario.id, email: usuario.email },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
+    );
+
+    res.status(201).json({
+      success: true,
+      message: `Cuenta creada exitosamente en ${empresa.nombre}`,
+      data: { usuario, token }
+    });
+
+  } catch (error) {
+    console.error('Error en registro evaluado:', error);
+    res.status(500).json({ success: false, error: 'Error al registrar usuario' });
+  }
+};
+
+module.exports = { registro, login, perfil, registroEvaluado };
