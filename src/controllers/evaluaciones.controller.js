@@ -140,6 +140,26 @@ const crearEvaluacion = async (req, res) => {
 
     const empresa_id = usuarioResult.rows[0].empresa_id;
 
+    // Control de duplicados: un solo envío por usuario cada 30 días
+    const duplicado = await query(
+      `SELECT id, fecha FROM evaluaciones
+       WHERE usuario_id = $1
+         AND fecha > NOW() - INTERVAL '30 days'
+       ORDER BY fecha DESC
+       LIMIT 1`,
+      [usuario_id]
+    );
+
+    if (duplicado.rows.length > 0) {
+      return res.status(409).json({
+        success: false,
+        codigo: 'DUPLICADO',
+        error: 'Ya existe una evaluación registrada en los últimos 30 días',
+        ultima_fecha: duplicado.rows[0].fecha,
+        evaluacion_id: duplicado.rows[0].id
+      });
+    }
+
     // Calcular niveles
     const { nivel_bp, nivel_bl, nivel_bc, nivel_riesgo } = calcularNiveles(puntaje_bp, puntaje_bl, puntaje_bc);
 
