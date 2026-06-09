@@ -269,10 +269,135 @@ const eliminarEvaluacion = async (req, res) => {
   }
 };
 
+// Exportar evaluaciones como CSV (solo administrador y coordinador)
+const exportarCSV = async (req, res) => {
+  try {
+    const { empresa_id } = req.query;
+
+    let whereClause = '';
+    const params = [];
+    if (empresa_id) {
+      whereClause = 'WHERE e.empresa_id = $1';
+      params.push(empresa_id);
+    }
+
+    const result = await query(
+      `SELECT
+         e.id,
+         e.fecha,
+         emp.nombre                                   AS empresa,
+         u.nombre                                     AS participante,
+         u.area,
+         u.puesto,
+         -- Demográficos desde JSONB
+         e.respuestas->'demograficos'->>'edad'        AS edad,
+         e.respuestas->'demograficos'->>'genero'      AS genero,
+         e.respuestas->'demograficos'->>'educacion'   AS educacion,
+         e.respuestas->'demograficos'->>'sector'      AS sector,
+         e.respuestas->'demograficos'->>'industria'   AS industria,
+         e.respuestas->'demograficos'->>'nivel_puesto'AS nivel_puesto,
+         e.respuestas->'demograficos'->>'experiencia' AS experiencia,
+         e.respuestas->'demograficos'->>'horas_semanales' AS horas_semanales,
+         e.respuestas->'demograficos'->>'modalidad'   AS modalidad,
+         -- Ítems CBI individuales (p1..p19)
+         (e.respuestas->'cbi'->>'1')::int  AS p1,
+         (e.respuestas->'cbi'->>'2')::int  AS p2,
+         (e.respuestas->'cbi'->>'3')::int  AS p3,
+         (e.respuestas->'cbi'->>'4')::int  AS p4,
+         (e.respuestas->'cbi'->>'5')::int  AS p5,
+         (e.respuestas->'cbi'->>'6')::int  AS p6,
+         (e.respuestas->'cbi'->>'7')::int  AS p7,
+         (e.respuestas->'cbi'->>'8')::int  AS p8,
+         (e.respuestas->'cbi'->>'9')::int  AS p9,
+         (e.respuestas->'cbi'->>'10')::int AS p10,
+         (e.respuestas->'cbi'->>'11')::int AS p11,
+         (e.respuestas->'cbi'->>'12')::int AS p12,
+         (e.respuestas->'cbi'->>'13')::int AS p13,
+         (e.respuestas->'cbi'->>'14')::int AS p14,
+         (e.respuestas->'cbi'->>'15')::int AS p15,
+         (e.respuestas->'cbi'->>'16')::int AS p16,
+         (e.respuestas->'cbi'->>'17')::int AS p17,
+         (e.respuestas->'cbi'->>'18')::int AS p18,
+         (e.respuestas->'cbi'->>'19')::int AS p19,
+         -- Puntajes y niveles
+         e.puntaje_bp,
+         e.puntaje_bl,
+         e.puntaje_bc,
+         e.nivel_bp,
+         e.nivel_bl,
+         e.nivel_bc,
+         e.nivel_riesgo,
+         -- Cualitativos
+         e.respuestas->'cualitativos'->>'factores_ambiente'      AS q1_factores_ambiente,
+         e.respuestas->'cualitativos'->>'soporte_organizacional' AS q2_soporte_organizacional,
+         e.respuestas->'cualitativos'->>'comentarios'            AS q3_comentarios,
+         -- Consentimiento
+         e.consentimiento_aceptado,
+         e.consentimiento_fecha,
+         e.consentimiento_version
+       FROM evaluaciones e
+       JOIN usuarios  u   ON u.id  = e.usuario_id
+       JOIN empresas  emp ON emp.id = e.empresa_id
+       ${whereClause}
+       ORDER BY e.fecha DESC`,
+      params
+    );
+
+    // Escapar un campo para CSV (comillas dobles si contiene coma/salto)
+    const esc = (v) => {
+      if (v === null || v === undefined) return '';
+      const s = String(v);
+      if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+        return '"' + s.replace(/"/g, '""') + '"';
+      }
+      return s;
+    };
+
+    const headers = [
+      'id','fecha','empresa','participante','area','puesto',
+      'edad','genero','educacion','sector','industria','nivel_puesto','experiencia','horas_semanales','modalidad',
+      'p1_BP','p2_BP','p3_BP','p4_BP','p5_BP','p6_BP',
+      'p7_BL','p8_BL','p9_BL','p10_BL','p11_BL','p12_BL','p13_BL_inv',
+      'p14_BC','p15_BC','p16_BC','p17_BC','p18_BC','p19_BC',
+      'puntaje_bp','puntaje_bl','puntaje_bc',
+      'nivel_bp','nivel_bl','nivel_bc','nivel_riesgo',
+      'q1_factores_ambiente','q2_soporte_organizacional','q3_comentarios',
+      'consentimiento_aceptado','consentimiento_fecha','consentimiento_version'
+    ];
+
+    const rows = result.rows.map(r => [
+      r.id, r.fecha, r.empresa, r.participante, r.area, r.puesto,
+      r.edad, r.genero, r.educacion, r.sector, r.industria, r.nivel_puesto, r.experiencia, r.horas_semanales, r.modalidad,
+      r.p1, r.p2, r.p3, r.p4, r.p5, r.p6,
+      r.p7, r.p8, r.p9, r.p10, r.p11, r.p12, r.p13,
+      r.p14, r.p15, r.p16, r.p17, r.p18, r.p19,
+      r.puntaje_bp, r.puntaje_bl, r.puntaje_bc,
+      r.nivel_bp, r.nivel_bl, r.nivel_bc, r.nivel_riesgo,
+      r.q1_factores_ambiente, r.q2_soporte_organizacional, r.q3_comentarios,
+      r.consentimiento_aceptado, r.consentimiento_fecha, r.consentimiento_version
+    ].map(esc).join(','));
+
+    const csv = [headers.join(','), ...rows].join('\r\n');
+    const fecha = new Date().toISOString().split('T')[0];
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="burnoutcare_datos_${fecha}.csv"`);
+    res.send('﻿' + csv); // BOM para que Excel abra UTF-8 correctamente
+
+  } catch (error) {
+    console.error('Error al exportar CSV:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al exportar datos'
+    });
+  }
+};
+
 module.exports = {
   obtenerEvaluaciones,
   obtenerEvaluacion,
   crearEvaluacion,
   obtenerEstadisticas,
-  eliminarEvaluacion
+  eliminarEvaluacion,
+  exportarCSV
 };

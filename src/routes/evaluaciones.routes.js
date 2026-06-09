@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { 
-  obtenerEvaluaciones, 
-  obtenerEvaluacion, 
-  crearEvaluacion, 
+const {
+  obtenerEvaluaciones,
+  obtenerEvaluacion,
+  crearEvaluacion,
   obtenerEstadisticas,
-  eliminarEvaluacion 
+  eliminarEvaluacion,
+  exportarCSV
 } = require('../controllers/evaluaciones.controller');
 const { verificarToken, verificarRol } = require('../middlewares/auth.middleware');
 
@@ -14,6 +15,9 @@ router.use(verificarToken);
 
 // Estadísticas (administrador y coordinador)
 router.get('/estadisticas', verificarRol('administrador', 'coordinador'), obtenerEstadisticas);
+
+// Exportar datos crudos en CSV (administrador y coordinador)
+router.get('/export-csv', verificarRol('administrador', 'coordinador'), exportarCSV);
 
 // Rutas de evaluaciones
 router.get('/', verificarRol('administrador', 'profesional', 'coordinador', 'evaluado'), obtenerEvaluaciones);
