@@ -54,6 +54,11 @@ CREATE TABLE IF NOT EXISTS auditoria (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Consentimiento informado en evaluaciones
+ALTER TABLE evaluaciones ADD COLUMN IF NOT EXISTS consentimiento_aceptado BOOLEAN DEFAULT false;
+ALTER TABLE evaluaciones ADD COLUMN IF NOT EXISTS consentimiento_fecha TIMESTAMP;
+ALTER TABLE evaluaciones ADD COLUMN IF NOT EXISTS consentimiento_version VARCHAR(20);
+
 -- Agregar columnas faltantes a empresas si no existen
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS sector VARCHAR(100);
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS tamanio VARCHAR(50);

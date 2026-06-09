@@ -111,12 +111,20 @@ const calcularNiveles = (puntaje_bp, puntaje_bl, puntaje_bc) => {
 // Crear nueva evaluación
 const crearEvaluacion = async (req, res) => {
   try {
-    const { usuario_id, respuestas, puntaje_bp, puntaje_bl, puntaje_bc } = req.body;
+    const { usuario_id, respuestas, puntaje_bp, puntaje_bl, puntaje_bc,
+          consentimiento_aceptado, consentimiento_fecha, consentimiento_version } = req.body;
 
     if (!usuario_id || !respuestas || puntaje_bp === undefined || puntaje_bl === undefined || puntaje_bc === undefined) {
       return res.status(400).json({
         success: false,
         error: 'Campos requeridos: usuario_id, respuestas, puntaje_bp, puntaje_bl, puntaje_bc'
+      });
+    }
+
+    if (!consentimiento_aceptado) {
+      return res.status(400).json({
+        success: false,
+        error: 'Se requiere consentimiento informado para registrar la evaluación'
       });
     }
 
@@ -136,10 +144,15 @@ const crearEvaluacion = async (req, res) => {
     const { nivel_bp, nivel_bl, nivel_bc, nivel_riesgo } = calcularNiveles(puntaje_bp, puntaje_bl, puntaje_bc);
 
     const result = await query(
-      `INSERT INTO evaluaciones (usuario_id, empresa_id, respuestas, puntaje_bp, puntaje_bl, puntaje_bc, nivel_bp, nivel_bl, nivel_bc, nivel_riesgo)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `INSERT INTO evaluaciones
+         (usuario_id, empresa_id, respuestas, puntaje_bp, puntaje_bl, puntaje_bc,
+          nivel_bp, nivel_bl, nivel_bc, nivel_riesgo,
+          consentimiento_aceptado, consentimiento_fecha, consentimiento_version)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
-      [usuario_id, empresa_id, JSON.stringify(respuestas), puntaje_bp, puntaje_bl, puntaje_bc, nivel_bp, nivel_bl, nivel_bc, nivel_riesgo]
+      [usuario_id, empresa_id, JSON.stringify(respuestas), puntaje_bp, puntaje_bl, puntaje_bc,
+       nivel_bp, nivel_bl, nivel_bc, nivel_riesgo,
+       true, consentimiento_fecha || new Date().toISOString(), consentimiento_version || '1.0-2026-06']
     );
 
     // Registrar en auditoría
