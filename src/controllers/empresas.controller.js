@@ -43,15 +43,15 @@ const obtenerEmpresa = async (req, res) => {
 
 const crearEmpresa = async (req, res) => {
   try {
-    const { nombre, sector, tamanio, contacto_nombre, contacto_email } = req.body;
+    const { nombre, sector, tamanio, contacto_nombre, contacto_email, codigo_registro } = req.body;
     if (!nombre) {
       return res.status(400).json({ success: false, error: 'El nombre es requerido' });
     }
     const result = await query(
-      `INSERT INTO empresas (nombre, sector, tamanio, contacto_nombre, contacto_email, activo)
-       VALUES ($1, $2, $3, $4, $5, true)
+      `INSERT INTO empresas (nombre, sector, tamanio, contacto_nombre, contacto_email, activo, codigo_registro)
+       VALUES ($1, $2, $3, $4, $5, true, $6)
        RETURNING *`,
-      [nombre, sector || null, tamanio || null, contacto_nombre || null, contacto_email || null]
+      [nombre, sector || null, tamanio || null, contacto_nombre || null, contacto_email || null, codigo_registro || null]
     );
     try {
       await query(
@@ -70,7 +70,7 @@ const crearEmpresa = async (req, res) => {
 const actualizarEmpresa = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, sector, tamanio, contacto_nombre, contacto_email } = req.body;
+    const { nombre, sector, tamanio, contacto_nombre, contacto_email, codigo_registro } = req.body;
 
     const existe = await query('SELECT id FROM empresas WHERE id = $1', [id]);
     if (existe.rows.length === 0) {
@@ -78,9 +78,9 @@ const actualizarEmpresa = async (req, res) => {
     }
 
     const result = await query(
-      `UPDATE empresas SET nombre=$1, sector=$2, tamanio=$3, contacto_nombre=$4, contacto_email=$5
-       WHERE id=$6 RETURNING *`,
-      [nombre, sector || null, tamanio || null, contacto_nombre || null, contacto_email || null, id]
+      `UPDATE empresas SET nombre=$1, sector=$2, tamanio=$3, contacto_nombre=$4, contacto_email=$5, codigo_registro=$6
+       WHERE id=$7 RETURNING *`,
+      [nombre, sector || null, tamanio || null, contacto_nombre || null, contacto_email || null, codigo_registro || null, id]
     );
 
     try {
