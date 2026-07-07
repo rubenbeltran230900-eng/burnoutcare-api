@@ -90,8 +90,8 @@ const login = async (req, res) => {
 
     try {
       await query(
-        `INSERT INTO auditoria (usuario_id, accion, detalle, ip) VALUES ($1, $2, $3, $4)`,
-        [usuario.id, 'LOGIN', JSON.stringify({ email }), req.ip]
+        `INSERT INTO auditoria (empresa_id, usuario_id, accion, modulo, detalles) VALUES ($1, $2, $3, $4, $5)`,
+        [usuario.empresa_id, usuario.id, 'LOGIN', 'auth', JSON.stringify({ email })]
       );
     } catch (auditError) {
       console.warn('No se pudo registrar auditoría:', auditError.message);
