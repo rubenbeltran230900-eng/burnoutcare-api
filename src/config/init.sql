@@ -64,19 +64,3 @@ ALTER TABLE empresas ADD COLUMN IF NOT EXISTS sector VARCHAR(100);
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS tamanio VARCHAR(50);
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS contacto_nombre VARCHAR(255);
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS contacto_email VARCHAR(255);
-
--- Empresa demo
-INSERT INTO empresas (nombre, sector, tamanio, contacto_nombre, contacto_email)
-VALUES ('Empresa Demo', 'Tecnología', 'Mediana', 'Admin', 'admin@demo.com')
-ON CONFLICT DO NOTHING;
-
--- Usuario admin demo (password: 123456)
-INSERT INTO usuarios (nombre, email, password, rol, empresa_id)
-VALUES (
-  'Administrador',
-  'admin@demo.com',
-  '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
-  'administrador',
-  1
-)
-ON CONFLICT (email) DO NOTHING;
