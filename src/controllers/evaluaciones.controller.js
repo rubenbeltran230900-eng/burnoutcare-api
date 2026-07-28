@@ -293,6 +293,10 @@ const eliminarEvaluacion = async (req, res) => {
 const exportarCSV = async (req, res) => {
   try {
     const { empresa_id } = req.query;
+    // Solo un administrador puede pedir explícitamente el export con nombres reales
+    // (uso clínico/seguimiento). Cualquier otro caso exporta datos pseudonimizados,
+    // pensados para análisis estadístico y el pipeline de ML.
+    const identificado = req.query.identificado === 'true' && req.usuario.rol === 'administrador';
 
     let whereClause = '';
     const params = [];
@@ -306,6 +310,7 @@ const exportarCSV = async (req, res) => {
          e.id,
          e.fecha,
          emp.nombre                                   AS empresa,
+         u.id                                          AS usuario_id,
          u.nombre                                     AS participante,
          u.area,
          u.puesto,
@@ -374,7 +379,7 @@ const exportarCSV = async (req, res) => {
     };
 
     const headers = [
-      'id','fecha','empresa','participante','area','puesto',
+      'id','fecha','empresa', identificado ? 'participante' : 'participante_id','area','puesto',
       'edad','genero','educacion','sector','industria','nivel_puesto','experiencia','horas_semanales','modalidad',
       'p1_BP','p2_BP','p3_BP','p4_BP','p5_BP','p6_BP',
       'p7_BL','p8_BL','p9_BL','p10_BL','p11_BL','p12_BL','p13_BL_inv',
@@ -386,7 +391,7 @@ const exportarCSV = async (req, res) => {
     ];
 
     const rows = result.rows.map(r => [
-      r.id, r.fecha, r.empresa, r.participante, r.area, r.puesto,
+      r.id, r.fecha, r.empresa, identificado ? r.participante : `P-${String(r.usuario_id).padStart(4, '0')}`, r.area, r.puesto,
       r.edad, r.genero, r.educacion, r.sector, r.industria, r.nivel_puesto, r.experiencia, r.horas_semanales, r.modalidad,
       r.p1, r.p2, r.p3, r.p4, r.p5, r.p6,
       r.p7, r.p8, r.p9, r.p10, r.p11, r.p12, r.p13,
@@ -401,7 +406,8 @@ const exportarCSV = async (req, res) => {
     const fecha = new Date().toISOString().split('T')[0];
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="burnoutcare_datos_${fecha}.csv"`);
+    const sufijo = identificado ? 'identificado' : 'anonimizado';
+    res.setHeader('Content-Disposition', `attachment; filename="burnoutcare_datos_${sufijo}_${fecha}.csv"`);
     res.send('﻿' + csv); // BOM para que Excel abra UTF-8 correctamente
 
   } catch (error) {
